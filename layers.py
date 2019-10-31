@@ -56,8 +56,10 @@ def max_pool_2x2(x):
 
 
 class GatedCNN():
+
     def __init__(self, W_shape, fan_in, horizontal, gated=True, payload=None, mask=None, activation=True,
                  conditional=None, conditional_image=None):
+
         self.fan_in = fan_in
         in_dim = self.fan_in.get_shape()[-1]
         self.W_shape = [W_shape[0], W_shape[1], in_dim, W_shape[2]]
@@ -152,3 +154,29 @@ class ConvolutionalEncoder(object):
         W_fc = get_weights([7*7*200, 10], "W_fc")
         b_fc = get_bias([10], "b_fc")
         self.pred = tf.nn.softmax(tf.add(tf.matmul(conv3_reshape, W_fc), b_fc))
+
+
+
+# Invertible 1x1 conv
+def invertible_1x1_conv(z, logdet, forward=True):
+    # Shape
+    h,w,c = z.shape[1:]
+    # Sample a random orthogonal matrix to initialise weights
+    w_init = np.linalg.qr(np.random.randn(c,c))[0]
+    w = tf.get_variable("W", initializer=w_init)
+    # Compute log determinant
+    dlogdet = h * w * tf.log(abs(tf.matrix_determinant(w)))
+    if forward:
+    # Forward computation
+        _w = tf.reshape(w, [1,1,c,c])
+        z = tf.nn.conv2d(z, _w, [1,1,1,1], ’SAME’)
+        logdet += dlogdet
+        #11
+        return z, logdet
+    else:
+        # Reverse computation
+        _w = tf.matrix_inverse(w)
+        _w = tf.reshape(_w, [1,1,c,c])
+        z = tf.nn.conv2d(z, _w, [1,1,1,1], ’SAME’)
+        logdet -= dlogdet
+        return z, logdet
