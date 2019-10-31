@@ -169,7 +169,7 @@ def invertible_1x1_conv(z, logdet, forward=True):
     if forward:
     # Forward computation
         _w = tf.reshape(w, [1,1,c,c])
-        z = tf.nn.conv2d(z, _w, [1,1,1,1], ’SAME’)
+        z = tf.nn.conv2d(z, _w, [1,1,1,1], 'SAME')
         logdet += dlogdet
         #11
         return z, logdet
@@ -177,6 +177,6 @@ def invertible_1x1_conv(z, logdet, forward=True):
         # Reverse computation
         _w = tf.matrix_inverse(w)
         _w = tf.reshape(_w, [1,1,c,c])
-        z = tf.nn.conv2d(z, _w, [1,1,1,1], ’SAME’)
+        z = tf.nn.conv2d(z, _w, [1,1,1,1], 'SAME')
         logdet -= dlogdet
         return z, logdet
